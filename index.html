@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For My Beloved Sharlyn</title>
+  <style>
+    /* Previous CSS remains the same, with added styles for pin screen */
+    .pin-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--dark);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s ease;
+    }
+
+    .pin-input {
+      padding: 15px;
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid var(--primary);
+      color: var(--light);
+      border-radius: 10px;
+    }
+
+    .pin-submit {
+      padding: 15px 30px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .pin-error {
+      color: red;
+      margin-top: 20px;
+      font-size: 1rem;
+      visibility: hidden;
+    }
+
+    .locked-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 9998;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2rem;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pin Screen -->
+  <div class="pin-screen" id="pinScreen">
+    <h2 style="color: var(--primary); margin-bottom: 30px;">Secure Access</h2>
+    <input type="password" class="pin-input" id="pinInput" maxlength="4" placeholder="Enter 4-digit PIN">
+    <button class="pin-submit" id="pinSubmit">Access Memories</button>
+    <div class="pin-error" id="pinError">Incorrect PIN. Please try again.</div>
+  </div>
+
+  <!-- Locked Overlay (for additional security) -->
+  <div class="locked-overlay" id="lockedOverlay">
+    Access Denied<br>
+    Too Many Failed Attempts
+  </div>
+
+  <!-- Rest of the previous HTML remains the same -->
+  <!-- (All previous sections, popup, etc.) -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const pinScreen = document.getElementById('pinScreen');
+      const pinInput = document.getElementById('pinInput');
+      const pinSubmit = document.getElementById('pinSubmit');
+      const pinError = document.getElementById('pinError');
+      const lockedOverlay = document.getElementById('lockedOverlay');
+
+      // Advanced security features
+      const MAX_ATTEMPTS = 3;
+      let attempts = 0;
+      let isLocked = false;
+      let lockoutTime = 0;
+
+      // Prevent right-click and developer tools
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+          e.preventDefault();
+        }
+      });
+
+      // Pin validation function
+      function validatePin() {
+        const enteredPin = pinInput.value;
+        
+        // Encrypted PIN validation (pseudo-encryption)
+        const salt = 'SHARLYN2005';
+        const hashedPin = btoa(enteredPin + salt);
+        const correctHash = btoa('2005' + salt);
+
+        if (hashedPin === correctHash) {
+          if (isLocked) {
+            pinError.textContent = 'System is temporarily locked. Try again later.';
+            pinError.style.visibility = 'visible';
+            return;
+          }
+
+          // Successful access
+          pinScreen.style.opacity = '0';
+          setTimeout(() => {
+            pinScreen.style.display = 'none';
+          }, 500);
+          
+          // Reset attempts on successful login
+          attempts = 0;
+        } else {
+          attempts++;
+          pinInput.value = ''; // Clear input
+
+          if (attempts >= MAX_ATTEMPTS) {
+            isLocked = true;
+            lockoutTime = Date.now() + (15 * 60 * 1000); // 15-minute lockout
+            lockedOverlay.style.display = 'flex';
+            pinScreen.style.display = 'none';
+
+            // Auto-unlock after lockout period
+            setTimeout(() => {
+              isLocked = false;
+              attempts = 0;
+              lockedOverlay.style.display = 'none';
+              pinScreen.style.display = 'flex';
+              pinScreen.style.opacity = '1';
+            }, 15 * 60 * 1000);
+          }
+
+          pinError.style.visibility = 'visible';
+        }
+      }
+
+      // Event listeners for PIN submission
+      pinSubmit.addEventListener('click', validatePin);
+      pinInput.addEventListener('keypress', function(e) {
+        // Only allow numeric input
+        if (!/^\d$/.test(e.key)) {
+          e.preventDefault();
+        }
+
+        // Submit on Enter key
+        if (e.key === 'Enter') {
+          validatePin();
+        }
+      });
+
+      // Hide error message when typing
+      pinInput.addEventListener('input', function() {
+        pinError.style.visibility = 'hidden';
+      });
+
+      // Rest of the previous JavaScript remains the same
+      // (All previous initialization code)
+    });
+  </script>
+</body>
+</html>
