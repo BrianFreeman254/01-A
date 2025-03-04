@@ -5,7 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>For My Beloved Sharlyn</title>
   <style>
-    /* Previous CSS remains the same, with added styles for pin screen */
+    :root {
+      --primary: #ff3e6c;
+      --secondary: #ff85a1;
+      --dark: #2a0a15;
+      --light: #fff9fb;
+      --accent: #ff98b4;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: none; /* Hidden until PIN is entered */
+      min-height: 100vh;
+      width: 100%;
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      position: relative;
+    }
+
     .pin-screen {
       position: fixed;
       top: 0;
@@ -43,6 +67,10 @@
       transition: all 0.3s ease;
     }
 
+    .pin-submit:hover {
+      transform: scale(1.05);
+    }
+
     .pin-error {
       color: red;
       margin-top: 20px;
@@ -50,21 +78,176 @@
       visibility: hidden;
     }
 
-    .locked-overlay {
+    /* Animations */
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+
+    @keyframes fallDown {
+      from { transform: translateY(-100vh); }
+      to { transform: translateY(100vh); }
+    }
+
+    .heart-shape {
+      position: absolute;
+      animation: float 3s ease-in-out infinite;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .falling-heart {
+      position: fixed;
+      top: -20px;
+      animation: fallDown 3s linear infinite;
+      pointer-events: none;
+    }
+
+    .nav-dots {
+      position: fixed;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .nav-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.3);
+      margin: 10px 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-dot.active {
+      background-color: var(--primary);
+      transform: scale(1.5);
+    }
+
+    .gallery-popup {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.9);
-      z-index: 9998;
-      display: flex;
       justify-content: center;
       align-items: center;
-      color: white;
-      font-size: 2rem;
+      z-index: 1000;
+    }
+
+    .gallery-content {
+      position: relative;
       text-align: center;
+    }
+
+    .gallery-close {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    .gallery-image {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 10px;
+    }
+
+    .gallery-nav {
+      margin-top: 20px;
+    }
+
+    .gallery-nav-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.3);
+      margin: 0 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .gallery-nav-dot.active {
+      background-color: var(--primary);
+    }
+
+    .heart-rain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .music-control {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .music-btn {
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .music-info {
       display: none;
+      font-size: 0.8rem;
+      color: white;
+      margin-top: 5px;
+    }
+
+    .final-message {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .final-content {
+      text-align: center;
+    }
+
+    .final-title {
+      font-size: 3rem;
+      color: var(--primary);
+    }
+
+    .final-text {
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    .final-heart {
+      font-size: 3rem;
+      margin-top: 20px;
+      animation: heartBeat 1.5s infinite;
     }
   </style>
 </head>
@@ -77,14 +260,146 @@
     <div class="pin-error" id="pinError">Incorrect PIN. Please try again.</div>
   </div>
 
-  <!-- Locked Overlay (for additional security) -->
-  <div class="locked-overlay" id="lockedOverlay">
-    Access Denied<br>
-    Too Many Failed Attempts
+  <!-- Navigation Dots -->
+  <div class="nav-dots">
+    <div class="nav-dot active" data-section="header"></div>
+    <div class="nav-dot" data-section="memories"></div>
+    <div class="nav-dot" data-section="reasons"></div>
+    <div class="nav-dot" data-section="future"></div>
   </div>
 
-  <!-- Rest of the previous HTML remains the same -->
-  <!-- (All previous sections, popup, etc.) -->
+  <!-- Header Section -->
+  <section id="header" class="header">
+    <div class="heart-bg" id="heartBg"></div>
+    <div class="header-content">
+      <h1 class="title">Sharlyn</h1>
+      <p class="subtitle">The Love of My Life</p>
+      <div class="heart-icon">❤️</div>
+      <p class="subtitle">This is my heart, and it belongs to you</p>
+      <button class="btn" id="exploreBtn">Explore Our Love Story</button>
+    </div>
+  </section>
+
+  <!-- Memories Section -->
+  <section id="memories" class="section memories">
+    <div class="section-content">
+      <h2 class="section-title">Our Precious Memories</h2>
+      <p>Every moment with you becomes a cherished memory that I hold close to my heart. These are just a few of the countless beautiful moments we've shared.</p>
+      
+      <div class="memory-cards">
+        <div class="memory-card">
+          <div class="memory-placeholder">
+            <img src="/api/placeholder/300/160" alt="Memory placeholder">
+          </div>
+          <div class="memory-date">Our First Date</div>
+          <div class="memory-text">The way you smiled when we first met took my breath away. I knew from that moment that something special was beginning.</div>
+        </div>
+        
+        <div class="memory-card">
+          <div class="memory-placeholder">
+            <img src="/api/placeholder/300/160" alt="Memory placeholder">
+          </div>
+          <div class="memory-date">The Beach Trip</div>
+          <div class="memory-text">Walking along the shore, hand in hand, watching the sunset paint the sky. Your laugh mingled with the sound of waves.</div>
+        </div>
+        
+        <div class="memory-card">
+          <div class="memory-placeholder">
+            <img src="/api/placeholder/300/160" alt="Memory placeholder">
+          </div>
+          <div class="memory-date">Under the Stars</div>
+          <div class="memory-text">That night we laid on the grass, counting stars and sharing dreams. I saw our future in your eyes.</div>
+        </div>
+      </div>
+
+      <button class="btn" id="memoryGalleryBtn" style="margin-top: 40px;">See More Memories</button>
+    </div>
+  </section>
+
+  <!-- Reasons Section -->
+  <section id="reasons" class="section reasons">
+    <div class="section-content">
+      <h2 class="section-title">Why I Love You</h2>
+      <p>There are countless reasons why my heart beats for you, Sharlyn. Here are just a few of the many things that make you the extraordinary woman I adore.</p>
+      
+      <div class="reason-list">
+        <div class="reason-item">
+          <h3>Your Beautiful Soul</h3>
+          <p>The kindness you show to everyone around you, the compassion that flows from your heart, and the way you light up any room you enter.</p>
+        </div>
+        
+        <div class="reason-item">
+          <h3>Your Strength</h3>
+          <p>The way you face challenges with grace and determination. You inspire me to be stronger every day.</p>
+        </div>
+        
+        <div class="reason-item">
+          <h3>Your Smile</h3>
+          <p>That perfect smile that makes my heart skip a beat every single time. It's the sunshine that brightens my darkest days.</p>
+        </div>
+        
+        <div class="reason-item">
+          <h3>Your Mind</h3>
+          <p>Your brilliant thoughts, your creativity, and the way you see the world in ways I never imagined.</p>
+        </div>
+        
+        <div class="reason-item">
+          <h3>Your Love</h3>
+          <p>The way you love - wholly, deeply, and without reservation. I've never felt more treasured than I do in your arms.</p>
+        </div>
+        
+        <button class="btn" id="startRainBtn" style="margin-top: 40px;">Show My Love</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Future Section -->
+  <section id="future" class="section future">
+    <div class="section-content">
+      <h2 class="section-title">Our Beautiful Future</h2>
+      <p>Every day with you is a blessing, but I'm even more excited about all the tomorrows we'll share.</p>
+      
+      <div class="promise-box">
+        <h3 style="margin-bottom: 20px; color: var(--accent);">My Promise To You</h3>
+        <p>I promise to love you in all your forms, through all your moods, and through all of life's seasons.</p>
+        <p>I promise to be your biggest supporter, your trusted confidant, and your faithful partner.</p>
+        <p>I promise to cherish every moment we share and to create a lifetime of beautiful memories with you.</p>
+        <p>I promise to grow with you, dream with you, and face whatever life brings us - together.</p>
+        <p>I promise to remind you every day just how extraordinary you are and how grateful I am to have you in my life.</p>
+        
+        <div class="signature">Forever Yours</div>
+      </div>
+      
+      <button class="btn" id="finalBtn" style="margin-top: 30px;">My Heart Is Yours</button>
+    </div>
+  </section>
+
+  <!-- Gallery Popup -->
+  <div class="gallery-popup" id="galleryPopup">
+    <div class="gallery-content">
+      <div class="gallery-close" id="galleryClose">×</div>
+      <img class="gallery-image" id="galleryImage" src="/api/placeholder/800/600" alt="Gallery image">
+      <div class="gallery-nav" id="galleryNav"></div>
+    </div>
+  </div>
+
+  <!-- Heart Rain Container -->
+  <div class="heart-rain" id="heartRain"></div>
+
+  <!-- Music Control -->
+  <div class="music-control">
+    <div class="music-btn" id="playBtn">♫</div>
+    <div class="music-info">Play Music</div>
+  </div>
+
+  <!-- Final Message -->
+  <div class="final-message" id="finalMessage">
+    <div class="final-content">
+      <h2 class="final-title">Sharlyn</h2>
+      <p class="final-text">You are the most beautiful thing that has ever happened to me. Every beat of my heart belongs to you, now and forever.</p>
+      <div class="final-heart">❤️</div>
+    </div>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -92,91 +407,181 @@
       const pinInput = document.getElementById('pinInput');
       const pinSubmit = document.getElementById('pinSubmit');
       const pinError = document.getElementById('pinError');
-      const lockedOverlay = document.getElementById('lockedOverlay');
 
-      // Advanced security features
       const MAX_ATTEMPTS = 3;
       let attempts = 0;
-      let isLocked = false;
-      let lockoutTime = 0;
 
-      // Prevent right-click and developer tools
-      document.addEventListener('contextmenu', e => e.preventDefault());
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-          e.preventDefault();
-        }
-      });
-
-      // Pin validation function
       function validatePin() {
         const enteredPin = pinInput.value;
         
-        // Encrypted PIN validation (pseudo-encryption)
-        const salt = 'SHARLYN2005';
-        const hashedPin = btoa(enteredPin + salt);
-        const correctHash = btoa('2005' + salt);
-
-        if (hashedPin === correctHash) {
-          if (isLocked) {
-            pinError.textContent = 'System is temporarily locked. Try again later.';
-            pinError.style.visibility = 'visible';
-            return;
-          }
-
-          // Successful access
+        if (enteredPin === '2005') {
           pinScreen.style.opacity = '0';
           setTimeout(() => {
             pinScreen.style.display = 'none';
+            document.body.style.display = 'block';
+            initializePageFeatures();
           }, 500);
-          
-          // Reset attempts on successful login
           attempts = 0;
         } else {
           attempts++;
-          pinInput.value = ''; // Clear input
-
+          pinInput.value = '';
           if (attempts >= MAX_ATTEMPTS) {
-            isLocked = true;
-            lockoutTime = Date.now() + (15 * 60 * 1000); // 15-minute lockout
-            lockedOverlay.style.display = 'flex';
-            pinScreen.style.display = 'none';
-
-            // Auto-unlock after lockout period
-            setTimeout(() => {
-              isLocked = false;
-              attempts = 0;
-              lockedOverlay.style.display = 'none';
-              pinScreen.style.display = 'flex';
-              pinScreen.style.opacity = '1';
-            }, 15 * 60 * 1000);
+            pinError.textContent = 'Too many failed attempts. Try again later.';
+            pinSubmit.disabled = true;
           }
-
           pinError.style.visibility = 'visible';
         }
       }
 
-      // Event listeners for PIN submission
       pinSubmit.addEventListener('click', validatePin);
       pinInput.addEventListener('keypress', function(e) {
-        // Only allow numeric input
-        if (!/^\d$/.test(e.key)) {
-          e.preventDefault();
-        }
-
-        // Submit on Enter key
-        if (e.key === 'Enter') {
-          validatePin();
-        }
+        if (!/^\d$/.test(e.key)) e.preventDefault();
+        if (e.key === 'Enter') validatePin();
       });
 
-      // Hide error message when typing
-      pinInput.addEventListener('input', function() {
-        pinError.style.visibility = 'hidden';
-      });
+      pinInput.addEventListener('input', () => pinError.style.visibility = 'hidden');
 
-      // Rest of the previous JavaScript remains the same
-      // (All previous initialization code)
+      function initializePageFeatures() {
+        // Heart background animation
+        const heartBg = document.getElementById('heartBg');
+        for (let i = 0; i < 20; i++) {
+          const heart = document.createElement('div');
+          heart.classList.add('heart-shape');
+          heart.textContent = '❤️';
+          heart.style.left = `${Math.random() * 100}%`;
+          heart.style.top = `${Math.random() * 100}%`;
+          heart.style.fontSize = `${Math.random() * 30 + 20}px`;
+          heart.style.animationDelay = `${Math.random() * 5}s`;
+          heartBg.appendChild(heart);
+        }
+
+        // Navigation dots
+        const sections = ['header', 'memories', 'reasons', 'future'];
+        const navDots = document.querySelectorAll('.nav-dot');
+
+        function updateActiveDot() {
+          sections.forEach((sectionId, index) => {
+            const section = document.getElementById(sectionId);
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+              navDots.forEach(dot => dot.classList.remove('active'));
+              navDots[index].classList.add('active');
+            }
+          });
+        }
+
+        window.addEventListener('scroll', updateActiveDot);
+        updateActiveDot();
+
+        navDots.forEach(dot => {
+          dot.addEventListener('click', () => {
+            const sectionId = dot.getAttribute('data-section');
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+          });
+        });
+
+        // Explore button
+        document.getElementById('exploreBtn').addEventListener('click', () => {
+          document.getElementById('memories').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Memory gallery
+        const memoryGalleryBtn = document.getElementById('memoryGalleryBtn');
+        const galleryPopup = document.getElementById('galleryPopup');
+        const galleryClose = document.getElementById('galleryClose');
+        const galleryImage = document.getElementById('galleryImage');
+        const galleryNav = document.getElementById('galleryNav');
+
+        const memories = [
+          '/api/placeholder/800/600',
+          '/api/placeholder/800/600',
+          '/api/placeholder/800/600',
+                   '/api/placeholder/800/600',
+          '/api/placeholder/800/600'
+        ];
+
+        let currentMemoryIndex = 0;
+
+        function updateGalleryImage(index) {
+          galleryImage.src = memories[index];
+          galleryNav.innerHTML = memories.map((_, i) => 
+            `<span class="gallery-nav-dot ${i === index ? 'active' : ''}" data-index="${i}"></span>`
+          ).join('');
+
+          document.querySelectorAll('.gallery-nav-dot').forEach(dot => {
+            dot.addEventListener('click', (e) => {
+              currentMemoryIndex = parseInt(e.target.getAttribute('data-index'));
+              updateGalleryImage(currentMemoryIndex);
+            });
+          });
+        }
+
+        memoryGalleryBtn.addEventListener('click', () => {
+          galleryPopup.style.display = 'flex';
+          updateGalleryImage(0);
+        });
+
+        galleryClose.addEventListener('click', () => {
+          galleryPopup.style.display = 'none';
+        });
+
+        // Heart rain effect
+        const startRainBtn = document.getElementById('startRainBtn');
+        const heartRain = document.getElementById('heartRain');
+
+        startRainBtn.addEventListener('click', () => {
+          for (let i = 0; i < 50; i++) {
+            const heart = document.createElement('div');
+            heart.innerHTML = '❤️';
+            heart.classList.add('falling-heart');
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            heart.style.fontSize = `${Math.random() * 20 + 10}px`;
+            heartRain.appendChild(heart);
+          }
+
+          setTimeout(() => {
+            heartRain.innerHTML = '';
+          }, 5000);
+        });
+
+        // Final message
+        const finalBtn = document.getElementById('finalBtn');
+        const finalMessage = document.getElementById('finalMessage');
+
+        finalBtn.addEventListener('click', () => {
+          finalMessage.style.display = 'flex';
+          setTimeout(() => {
+            finalMessage.style.opacity = '1';
+          }, 50);
+
+          setTimeout(() => {
+            finalMessage.style.opacity = '0';
+            setTimeout(() => {
+              finalMessage.style.display = 'none';
+            }, 1000);
+          }, 3000);
+        });
+
+        // Music player
+        const playBtn = document.getElementById('playBtn');
+        const musicInfo = document.querySelector('.music-info');
+        const audioElement = new Audio('path/to/your/love/song.mp3'); // Replace with actual path
+        let isPlaying = false;
+
+        playBtn.addEventListener('click', () => {
+          if (isPlaying) {
+            audioElement.pause();
+            musicInfo.textContent = 'Play Music';
+            playBtn.style.color = 'white';
+          } else {
+            audioElement.play();
+            musicInfo.textContent = 'Pause Music';
+            playBtn.style.color = 'var(--primary)';
+          }
+          isPlaying = !isPlaying;
+        });
+      }
     });
   </script>
 </body>
