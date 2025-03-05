@@ -814,24 +814,38 @@
       });
 
       // Music player
-      const playBtn = document.getElementById('playBtn');
-      const musicInfo = document.querySelector('.music-info');
-      
-      // We can't actually play music without files, but we'll simulate it
-      let isPlaying = false;
-      
-      playBtn.addEventListener('click', () => {
-        isPlaying = !isPlaying;
-        
-        if (isPlaying) {
-          playBtn.textContent = '⏸';
-          musicInfo.textContent = 'Now Playing: Our Song';
-        } else {
-          playBtn.textContent = '♫';
-          musicInfo.textContent = 'Play Music';
-        }
-      });
+<audio id="musicPlayer" src="Our song.mp3"></audio>
+<button id="playBtn">♫</button>
+<div class="music-info">Play Music</div>
 
+
+  const playBtn = document.getElementById('playBtn');
+  const musicInfo = document.querySelector('.music-info');
+  const musicPlayer = document.getElementById('musicPlayer');
+
+  let isPlaying = false;
+
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      musicPlayer.pause();
+      playBtn.textContent = '♫';
+      musicInfo.textContent = 'Play Music';
+    } else {
+      musicPlayer.play();
+      playBtn.textContent = '⏸';
+      musicInfo.textContent = 'Now Playing: Our Song';
+    }
+    isPlaying = !isPlaying;
+  });
+
+
+
+
+
+
+      
+      const playBtn = document.getElementById('playBtn');
+     
       // Add scroll reveal effect for elements
       const observerOptions = {
         root: null,
