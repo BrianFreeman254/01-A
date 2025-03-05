@@ -432,7 +432,21 @@
       color: white;
       font-size: 0.9rem;
     }
+/* Additional style for music progress */
+    .music-progress {
+      width: 100%;
+      height: 4px;
+      background-color: rgba(255,255,255,0.3);
+      margin-top: 10px;
+      position: relative;
+    }
 
+    .music-progress-bar {
+      width: 0;
+      height: 100%;
+      background-color: var(--primary);
+      transition: width 0.1s linear;
+    }
     /* Pulse animation for images */
     .pulse-image {
       animation: pulse 4s ease-in-out infinite;
@@ -642,6 +656,18 @@
     <div class="music-btn" id="playBtn">♫</div>
     <div class="music-info">Play Music</div>
   </div>
+  <!-- Existing HTML remains the same, but we'll modify the music control section -->
+  <div class="music-control">
+    <div class="music-btn" id="playBtn">♫</div>
+    <div class="music-info">Play Music</div>
+    <audio id="backgroundMusic">
+      <source src="/Our song.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    <div class="music-progress">
+      <div class="music-progress-bar" id="musicProgressBar"></div>
+    </div>
+  </div>
 
   <!-- Final Message -->
   <div class="final-message" id="finalMessage">
@@ -814,22 +840,36 @@
       });
 
       // Music player
+      // Music player
       const playBtn = document.getElementById('playBtn');
       const musicInfo = document.querySelector('.music-info');
+      const audio = document.getElementById('backgroundMusic');
+      const progressBar = document.getElementById('musicProgressBar');
       
-      // We can't actually play music without files, but we'll simulate it
-      let isPlaying = false;
-      
+      // Update play/pause functionality
       playBtn.addEventListener('click', () => {
-        isPlaying = !isPlaying;
-        
-        if (isPlaying) {
+        if (audio.paused) {
+          audio.play();
           playBtn.textContent = '⏸';
           musicInfo.textContent = 'Now Playing: Our Song';
         } else {
+          audio.pause();
           playBtn.textContent = '♫';
           musicInfo.textContent = 'Play Music';
         }
+      });
+
+      // Update progress bar
+      audio.addEventListener('timeupdate', () => {
+        const progressPercent = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = `${progressPercent}%`;
+      });
+
+      // Reset when song ends
+      audio.addEventListener('ended', () => {
+        playBtn.textContent = '♫';
+        musicInfo.textContent = 'Play Music';
+        progressBar.style.width = '0%';
       });
 
       // Add scroll reveal effect for elements
