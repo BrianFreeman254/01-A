@@ -831,13 +831,14 @@
       playBtn.textContent = '♫';
       musicInfo.textContent = 'Play Music';
     } else {
-      musicPlayer.play();
+      musicPlayer.play().catch(error => console.error("Audio play failed:", error));
       playBtn.textContent = '⏸';
       musicInfo.textContent = 'Now Playing: Our Song';
     }
     isPlaying = !isPlaying;
   });
 </script>
+
 
       // Add scroll reveal effect for elements
       const observerOptions = {
