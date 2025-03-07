@@ -659,210 +659,6 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Create hearts in background
-      const heartBg = document.getElementById('heartBg');
-      for (let i = 0; i < 20; i++) {
-        const heart = document.createElement('div');
-        heart.classList.add('heart-shape');
-        heart.textContent = '❤️';
-        heart.style.left = `${Math.random() * 100}%`;
-        heart.style.top = `${Math.random() * 100}%`;
-        heart.style.fontSize = `${Math.random() * 30 + 20}px`;
-        heart.style.animationDelay = `${Math.random() * 5}s`;
-        heartBg.appendChild(heart);
-      }
-
-      // Navigation
-      const sections = ['header', 'memories', 'reasons', 'future'];
-      const navDots = document.querySelectorAll('.nav-dot');
-
-      // Handle navigation dot clicks
-      navDots.forEach(dot => {
-        dot.addEventListener('click', () => {
-          const sectionId = dot.getAttribute('data-section');
-          document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
-        });
-      });
-
-      // Update active dot on scroll
-      window.addEventListener('scroll', () => {
-        const scrollPosition = window.scrollY;
-        
-        sections.forEach((sectionId, index) => {
-          const section = document.getElementById(sectionId);
-          const sectionTop = section.offsetTop;
-          const sectionHeight = section.offsetHeight;
-          
-          if (scrollPosition >= sectionTop - 200 && scrollPosition < sectionTop + sectionHeight - 200) {
-            navDots.forEach(dot => dot.classList.remove('active'));
-            navDots[index].classList.add('active');
-          }
-        });
-      });
-
-      // Explore button
-      document.getElementById('exploreBtn').addEventListener('click', () => {
-        document.getElementById('memories').scrollIntoView({ behavior: 'smooth' });
-      });
-
-      // Memory gallery
-      const galleryPopup = document.getElementById('galleryPopup');
-      const galleryImage = document.getElementById('galleryImage');
-      const galleryNav = document.getElementById('galleryNav');
-      const galleryClose = document.getElementById('galleryClose');
-      
-      // Gallery images (placeholders)
-      const galleryImages = [
-        '/api/placeholder/800/600',
-        '/api/placeholder/800/600',
-        '/api/placeholder/800/600',
-        '/api/placeholder/800/600',
-        '/api/placeholder/800/600'
-      ];
-      
-      let currentImage = 0;
-
-      // Open gallery
-      document.getElementById('memoryGalleryBtn').addEventListener('click', () => {
-        galleryPopup.classList.add('show');
-        
-        // Create navigation dots
-        galleryNav.innerHTML = '';
-        galleryImages.forEach((_, index) => {
-          const dot = document.createElement('div');
-          dot.classList.add('gallery-dot');
-          if (index === 0) dot.classList.add('active');
-          
-          dot.addEventListener('click', () => {
-            currentImage = index;
-            updateGalleryImage();
-          });
-          
-          galleryNav.appendChild(dot);
-        });
-        
-        // Display first image
-        updateGalleryImage();
-      });
-
-      // Update gallery image
-      function updateGalleryImage() {
-        galleryImage.src = galleryImages[currentImage];
-        
-        const dots = document.querySelectorAll('.gallery-dot');
-        dots.forEach((dot, index) => {
-          if (index === currentImage) {
-            dot.classList.add('active');
-          } else {
-            dot.classList.remove('active');
-          }
-        });
-      }
-
-      // Close gallery
-      galleryClose.addEventListener('click', () => {
-        galleryPopup.classList.remove('show');
-      });
-
-      // Create heart rain
-      document.getElementById('startRainBtn').addEventListener('click', () => {
-        const heartRain = document.getElementById('heartRain');
-        heartRain.style.display = 'block';
-        heartRain.innerHTML = '';
-        
-        const heartSymbols = ['❤️', '💖', '💗', '💕', '💓', '💞'];
-        
-        for (let i = 0; i < 100; i++) {
-          setTimeout(() => {
-            const heart = document.createElement('div');
-            heart.classList.add('rain-heart');
-            
-            // Random position
-            heart.style.left = `${Math.random() * 100}%`;
-            
-            // Random heart symbol
-            heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
-            
-            // Random size
-            heart.style.fontSize = `${Math.random() * 30 + 15}px`;
-            
-            // Random animation duration
-            const duration = Math.random() * 3 + 3;
-            heart.style.animationDuration = `${duration}s`;
-            
-            heartRain.appendChild(heart);
-            
-            // Remove after animation
-            setTimeout(() => {
-              heart.remove();
-            }, duration * 1000);
-          }, i * 100);
-        }
-        
-        // Stop rain after all hearts have fallen
-        setTimeout(() => {
-          heartRain.style.display = 'none';
-        }, 15000);
-      });
-
-      // Final message
-      document.getElementById('finalBtn').addEventListener('click', () => {
-        document.getElementById('finalMessage').classList.add('show');
-        
-        // Create heart rain again for final effect
-        document.getElementById('startRainBtn').click();
-        
-        // Hide final message after some time
-        setTimeout(() => {
-          document.getElementById('finalMessage').classList.remove('show');
-        }, 10000);
-      });
-
-      // Music player
-      const playBtn = document.getElementById('playBtn');
-      const musicInfo = document.querySelector('.music-info');
-      const audioElement = document.getElementById('backgroundMusic');
-      
-      playBtn.addEventListener('click', () => {
-        if (audioElement.paused) {
-          audioElement.play();
-          playBtn.textContent = '⏸';
-          musicInfo.textContent = 'Now Playing: Our Song';
-        } else {
-          audioElement.pause();
-          playBtn.textContent = '♫';
-          musicInfo.textContent = 'Play Music';
-        }
-      });
-
-      // Add volume control (optional)
-      audioElement.volume = 0.5; // Set initial volume to 50%
-
-      // Add scroll reveal effect for elements
-      const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }
-        });
-      }, observerOptions);
-
-      // Observe elements
-      document.querySelectorAll('.memory-card, .reason-item, .promise-box').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.8s ease';
-        observer.observe(el);
-      });
-    });
     /**
  * Advanced Website PIN Security System
  * Secures website content behind a PIN verification overlay
@@ -1107,7 +903,211 @@
     }, 500);
   }
 })();
+    document.addEventListener('DOMContentLoaded', function() {
+      // Create hearts in background
+      const heartBg = document.getElementById('heartBg');
+      for (let i = 0; i < 20; i++) {
+        const heart = document.createElement('div');
+        heart.classList.add('heart-shape');
+        heart.textContent = '❤️';
+        heart.style.left = `${Math.random() * 100}%`;
+        heart.style.top = `${Math.random() * 100}%`;
+        heart.style.fontSize = `${Math.random() * 30 + 20}px`;
+        heart.style.animationDelay = `${Math.random() * 5}s`;
+        heartBg.appendChild(heart);
+      }
 
+      // Navigation
+      const sections = ['header', 'memories', 'reasons', 'future'];
+      const navDots = document.querySelectorAll('.nav-dot');
+
+      // Handle navigation dot clicks
+      navDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+          const sectionId = dot.getAttribute('data-section');
+          document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      // Update active dot on scroll
+      window.addEventListener('scroll', () => {
+        const scrollPosition = window.scrollY;
+        
+        sections.forEach((sectionId, index) => {
+          const section = document.getElementById(sectionId);
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight;
+          
+          if (scrollPosition >= sectionTop - 200 && scrollPosition < sectionTop + sectionHeight - 200) {
+            navDots.forEach(dot => dot.classList.remove('active'));
+            navDots[index].classList.add('active');
+          }
+        });
+      });
+
+      // Explore button
+      document.getElementById('exploreBtn').addEventListener('click', () => {
+        document.getElementById('memories').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      // Memory gallery
+      const galleryPopup = document.getElementById('galleryPopup');
+      const galleryImage = document.getElementById('galleryImage');
+      const galleryNav = document.getElementById('galleryNav');
+      const galleryClose = document.getElementById('galleryClose');
+      
+      // Gallery images (placeholders)
+      const galleryImages = [
+        '/api/placeholder/800/600',
+        '/api/placeholder/800/600',
+        '/api/placeholder/800/600',
+        '/api/placeholder/800/600',
+        '/api/placeholder/800/600'
+      ];
+      
+      let currentImage = 0;
+
+      // Open gallery
+      document.getElementById('memoryGalleryBtn').addEventListener('click', () => {
+        galleryPopup.classList.add('show');
+        
+        // Create navigation dots
+        galleryNav.innerHTML = '';
+        galleryImages.forEach((_, index) => {
+          const dot = document.createElement('div');
+          dot.classList.add('gallery-dot');
+          if (index === 0) dot.classList.add('active');
+          
+          dot.addEventListener('click', () => {
+            currentImage = index;
+            updateGalleryImage();
+          });
+          
+          galleryNav.appendChild(dot);
+        });
+        
+        // Display first image
+        updateGalleryImage();
+      });
+
+      // Update gallery image
+      function updateGalleryImage() {
+        galleryImage.src = galleryImages[currentImage];
+        
+        const dots = document.querySelectorAll('.gallery-dot');
+        dots.forEach((dot, index) => {
+          if (index === currentImage) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+      }
+
+      // Close gallery
+      galleryClose.addEventListener('click', () => {
+        galleryPopup.classList.remove('show');
+      });
+
+      // Create heart rain
+      document.getElementById('startRainBtn').addEventListener('click', () => {
+        const heartRain = document.getElementById('heartRain');
+        heartRain.style.display = 'block';
+        heartRain.innerHTML = '';
+        
+        const heartSymbols = ['❤️', '💖', '💗', '💕', '💓', '💞'];
+        
+        for (let i = 0; i < 100; i++) {
+          setTimeout(() => {
+            const heart = document.createElement('div');
+            heart.classList.add('rain-heart');
+            
+            // Random position
+            heart.style.left = `${Math.random() * 100}%`;
+            
+            // Random heart symbol
+            heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            
+            // Random size
+            heart.style.fontSize = `${Math.random() * 30 + 15}px`;
+            
+            // Random animation duration
+            const duration = Math.random() * 3 + 3;
+            heart.style.animationDuration = `${duration}s`;
+            
+            heartRain.appendChild(heart);
+            
+            // Remove after animation
+            setTimeout(() => {
+              heart.remove();
+            }, duration * 1000);
+          }, i * 100);
+        }
+        
+        // Stop rain after all hearts have fallen
+        setTimeout(() => {
+          heartRain.style.display = 'none';
+        }, 15000);
+      });
+
+      // Final message
+      document.getElementById('finalBtn').addEventListener('click', () => {
+        document.getElementById('finalMessage').classList.add('show');
+        
+        // Create heart rain again for final effect
+        document.getElementById('startRainBtn').click();
+        
+        // Hide final message after some time
+        setTimeout(() => {
+          document.getElementById('finalMessage').classList.remove('show');
+        }, 10000);
+      });
+
+      // Music player
+      const playBtn = document.getElementById('playBtn');
+      const musicInfo = document.querySelector('.music-info');
+      const audioElement = document.getElementById('backgroundMusic');
+      
+      playBtn.addEventListener('click', () => {
+        if (audioElement.paused) {
+          audioElement.play();
+          playBtn.textContent = '⏸';
+          musicInfo.textContent = 'Now Playing: Our Song';
+        } else {
+          audioElement.pause();
+          playBtn.textContent = '♫';
+          musicInfo.textContent = 'Play Music';
+        }
+      });
+
+      // Add volume control (optional)
+      audioElement.volume = 0.5; // Set initial volume to 50%
+
+      // Add scroll reveal effect for elements
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Observe elements
+      document.querySelectorAll('.memory-card, .reason-item, .promise-box').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.8s ease';
+        observer.observe(el);
+      });
+    });
+  
   </script>
 </body>
 </html>
