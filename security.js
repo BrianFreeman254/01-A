@@ -5,6 +5,7 @@
  */
 
 // Self-executing function to avoid polluting global namespace
+<script>
 (function() {
   // Configuration
   const CORRECT_PIN = '2005';
@@ -242,3 +243,4 @@
     }, 500);
   }
 })();
+</script>
