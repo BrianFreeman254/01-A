@@ -1,26 +1,64 @@
-// Ensure the music plays after a user interaction
+ <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const audio = new Audio('Our song.mp3'); // Load the music file
-    audio.loop = true; // Loop the music (optional)
-
-    // Function to play the music
+    // Create the audio element with proper error handling
+    const audio = new Audio();
+    
+    // Handle loading errors
+    audio.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e);
+        // Try a different approach or format if needed
+        audio.src = 'Our song.mp3'; // Try loading again
+    });
+    
+    // Set audio properties
+    audio.src = 'Our song.mp3';
+    audio.loop = true;
+    
+    // Improved playMusic function with better error handling
     const playMusic = () => {
-        audio.play().catch(error => {
-            console.error('Error playing music:', error);
-            // Retry playing the music after a short delay
-            setTimeout(playMusic, 1000);
-        });
+        // Store the play promise
+        const playPromise = audio.play();
+        
+        // Handle play() promise rejection properly
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error('Error playing music:', error);
+                
+                // If error is related to user interaction requirement
+                if (error.name === 'NotAllowedError') {
+                    console.log('Waiting for user interaction...');
+                } else {
+                    // For other errors, retry after delay
+                    setTimeout(playMusic, 1000);
+                }
+            });
+        }
     };
-
-    // Play music after the first user interaction (e.g., click, tap)
-    const handleFirstInteraction = () => {
+    
+    // Use multiple events for better browser compatibility
+    const handleInteraction = () => {
         playMusic();
-        // Remove the event listener after the first interaction
-        document.removeEventListener('click', handleFirstInteraction);
-        document.removeEventListener('touchstart', handleFirstInteraction);
+        
+        // Remove all event listeners to prevent multiple calls
+        ['click', 'touchstart', 'keydown', 'scroll'].forEach(event => {
+            document.removeEventListener(event, handleInteraction);
+        });
+        
+        // Add a backup check to ensure music is playing
+        setTimeout(() => {
+            if (audio.paused) {
+                console.log('Music not playing, trying again...');
+                playMusic();
+            }
+        }, 1000);
     };
-
-    // Add event listeners for user interaction
-    document.addEventListener('click', handleFirstInteraction);
-    document.addEventListener('touchstart', handleFirstInteraction);
+    
+    // Add multiple event listeners for better chances of capturing user interaction
+    ['click', 'touchstart', 'keydown', 'scroll'].forEach(event => {
+        document.addEventListener(event, handleInteraction);
+    });
+    
+    // Provide visual indication that interaction is needed
+    console.log('Please interact with the page to play music');
 });
+</script>
